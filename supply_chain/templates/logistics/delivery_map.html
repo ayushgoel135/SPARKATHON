@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Delivery Route Map - {{ route.route_id }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    #map-container {
+        height: 600px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #dee2e6;
+    }
+    .route-info {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .stop-card {
+        transition: all 0.3s ease;
+    }
+    .stop-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .status-badge {
+        font-size: 0.8rem;
+        padding: 5px 10px;
+        border-radius: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>
+                <i class="fas fa-route"></i> Delivery Route: {{ route.route_id }}
+            </h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'delivery_dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Route Information -->
+        <div class="col-md-4">
+            <div class="route-info">
+                <h5 class="mb-3">Route Details</h5>
+                <div class="mb-3">
+                    <strong>Date:</strong> {{ route.planned_date }}
+                </div>
+                <div class="mb-3">
+                    <strong>Status:</strong>
+                    <span class="badge 
+                        {% if route.status == 'completed' %}bg-success
+                        {% elif route.status == 'in_progress' %}bg-primary
+                        {% elif route.status == 'planned' %}bg-info
+                        {% else %}bg-secondary{% endif %}">
+                        {{ route.get_status_display }}
+                    </span>
+                </div>
+                <div class="mb-3">
+                    <strong>Driver:</strong>
+                    {% if route.driver %}
+                        {{ route.driver.name }}
+                    {% else %}
+                        Not assigned
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <strong>Vehicle:</strong>
+                    {% if route.vehicle %}
+                        {{ route.vehicle.get_type_display }} ({{ route.vehicle.registration }})
+                    {% else %}
+                        Not assigned
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <strong>Distance:</strong> {{ route.total_distance|floatformat:2 }} km
+                </div>
+                <div class="mb-3">
+                    <strong>Estimated Duration:</strong> {{ route.estimated_duration|floatformat:0 }} minutes
+                </div>
+                {% if route.actual_duration %}
+                <div class="mb-3">
+                    <strong>Actual Duration:</strong> {{ route.actual_duration|floatformat:0 }} minutes
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Route Stops -->
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-map-marker-alt"></i> Route Stops
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item bg-light">
+                            <div class="d-flex justify-content-between">
+                                <strong>1. Warehouse</strong>
+                                <span class="text-muted">Start</span>
+                            </div>
+                            <small class="text-muted">{{ route.warehouse.name }}</small>
+                        </div>
+                        
+                        {% for stop in route.routeorder_set.all %}
+                        <div class="list-group-item stop-card">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ forloop.counter|add:1 }}. {{ stop.order.customer.name }}</strong>
+                                    <div class="text-muted small">
+                                        Order #{{ stop.order.order_number }}
+                                    </div>
+                                </div>
+                                <span class="status-badge 
+                                    {% if stop.delivery_status == 'delivered' %}bg-success
+                                    {% elif stop.delivery_status == 'out_for_delivery' %}bg-primary
+                                    {% else %}bg-warning text-dark{% endif %}">
+                                    {{ stop.get_delivery_status_display }}
+                                </span>
+                            </div>
+                            <div class="mt-2 small">
+                                <div>
+                                    <i class="fas fa-clock"></i> 
+                                    Estimated: {{ stop.estimated_arrival|time }}
+                                </div>
+                                {% if stop.actual_arrival %}
+                                <div>
+                                    <i class="fas fa-check-circle"></i> 
+                                    Actual: {{ stop.actual_arrival|time }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        <div class="list-group-item bg-light">
+                            <div class="d-flex justify-content-between">
+                                <strong>{{ route.routeorder_set.count|add:2 }}. Warehouse</strong>
+                                <span class="text-muted">End</span>
+                            </div>
+                            <small class="text-muted">{{ route.warehouse.name }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-map-marked-alt"></i> Route Map
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if route.map_url %}
+                    <div id="map-container">
+                        <iframe src="{{ route.map_url }}" width="100%" height="100%" frameborder="0"></iframe>
+                    </div>
+                    {% else %}
+                    <div class="p-4 text-center text-muted">
+                        <i class="fas fa-map-marked-alt fa-3x mb-3"></i>
+                        <h5>No map available for this route</h5>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

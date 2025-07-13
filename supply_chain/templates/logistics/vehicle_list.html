@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Vehicle Management{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-truck"></i> Vehicle Management</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'admin:logistics_vehicle_add' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Vehicle
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list"></i> All Vehicles
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Registration</th>
+                            <th>Type</th>
+                            <th>Location</th>
+                            <th>Capacity</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vehicle in vehicles %}
+                        <tr>
+                            <td>{{ vehicle.registration }}</td>
+                            <td>{{ vehicle.get_type_display }}</td>
+                            <td>
+                                {% if vehicle.current_location %}
+                                    {{ vehicle.current_location.name }}
+                                {% else %}
+                                    Not assigned
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ vehicle.capacity_volume }} m³ / 
+                                {{ vehicle.capacity_weight }} kg
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if vehicle.status == 'available' %}bg-success
+                                    {% elif vehicle.status == 'in_transit' %}bg-primary
+                                    {% elif vehicle.status == 'maintenance' %}bg-warning text-dark
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ vehicle.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'admin:logistics_vehicle_change' vehicle.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">No vehicles found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

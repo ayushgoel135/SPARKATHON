@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Logistics Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-truck"></i> Logistics Dashboard</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'admin:logistics_deliveryroute_add' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create Route
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Today's Routes -->
+        <div class="col-md-8 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-route"></i> Today's Delivery Routes ({{ today|date:"F j, Y" }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if routes %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Route ID</th>
+                                    <th>Vehicle</th>
+                                    <th>Driver</th>
+                                    <th>Stops</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for route in routes %}
+                                <tr>
+                                    <td>{{ route.route_id }}</td>
+                                    <td>
+                                        {% if route.vehicle %}
+                                            {{ route.vehicle.get_type_display }} ({{ route.vehicle.registration }})
+                                        {% else %}
+                                            Not assigned
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if route.driver %}
+                                            {{ route.driver.name }}
+                                        {% else %}
+                                            Not assigned
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ route.routeorder_set.count }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if route.status == 'completed' %}bg-success
+                                            {% elif route.status == 'in_progress' %}bg-primary
+                                            {% elif route.status == 'planned' %}bg-info
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ route.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'delivery_map' route.route_id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-map-marked-alt"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mb-0">
+                        No routes planned for today.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="col-md-4 mb-4">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tachometer-alt"></i> Quick Stats
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="text-muted">Pending Orders</h6>
+                        <h3>{{ pending_orders }}</h3>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-muted">Available Vehicles</h6>
+                        <h3>{{ vehicles.count }}</h3>
+                    </div>
+                    <div>
+                        <h6 class="text-muted">Available Drivers</h6>
+                        <h3>{{ drivers.count }}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt"></i> Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'admin:logistics_vehicle_changelist' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-truck"></i> Manage Vehicles
+                        </a>
+                        <a href="{% url 'admin:logistics_driver_changelist' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-user"></i> Manage Drivers
+                        </a>
+                        <a href="{% url 'admin:logistics_order_changelist' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-shopping-cart"></i> View Orders
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

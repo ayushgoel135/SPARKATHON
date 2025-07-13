@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ product.name }} Details{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>
+                <i class="fas fa-box"></i> {{ product.name }}
+                <small class="text-muted">{{ product.SKU }}</small>
+            </h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'admin:inventory_product_change' product.id %}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Edit Product
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Product Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid rounded" style="max-height: 200px;">
+                        {% else %}
+                        <div class="bg-light p-5 text-muted rounded">
+                            <i class="fas fa-box-open fa-3x"></i>
+                            <p class="mt-2">No image available</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <table class="table table-sm">
+                        <tr>
+                            <th>SKU</th>
+                            <td>{{ product.SKU }}</td>
+                        </tr>
+                        <tr>
+                            <th>Category</th>
+                            <td>{{ product.category }}</td>
+                        </tr>
+                        <tr>
+                            <th>Unit Cost</th>
+                            <td>${{ product.unit_cost }}</td>
+                        </tr>
+                        <tr>
+                            <th>Selling Price</th>
+                            <td>${{ product.selling_price }}</td>
+                        </tr>
+                        <tr>
+                            <th>Dimensions</th>
+                            <td>{{ product.dimensions }}</td>
+                        </tr>
+                        <tr>
+                            <th>Weight</th>
+                            <td>{{ product.weight }} kg</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-warehouse"></i> Inventory Across Warehouses
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Warehouse</th>
+                                    <th>On Hand</th>
+                                    <th>Allocated</th>
+                                    <th>On Order</th>
+                                    <th>Reorder Point</th>
+                                    <th>Safety Stock</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for inv in inventory %}
+                                <tr>
+                                    <td>{{ inv.warehouse.name }}</td>
+                                    <td>{{ inv.quantity_on_hand }}</td>
+                                    <td>{{ inv.quantity_allocated }}</td>
+                                    <td>{{ inv.quantity_on_order }}</td>
+                                    <td>{{ inv.reorder_point }}</td>
+                                    <td>{{ inv.safety_stock }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">No inventory records found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line"></i> Sales History
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if sales_chart %}
+                        {{ sales_chart|safe }}
+                    {% else %}
+                        <div class="alert alert-info">
+                            No sales history available for this product.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

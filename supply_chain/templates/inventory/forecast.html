@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Product Forecast{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>
+                <i class="fas fa-chart-line"></i> Demand Forecast: {{ product.name }}
+            </h2>
+            <p class="text-muted">Warehouse: {{ warehouse.name }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'inventory_dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-chart-bar"></i> Forecast Details
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if forecast %}
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Forecast Period:</strong> {{ forecast.forecast_start }} to {{ forecast.forecast_end }}</p>
+                    <p><strong>Algorithm Used:</strong> {{ forecast.algorithm_used }}</p>
+                    <p><strong>Generated On:</strong> {{ forecast.forecast_created }}</p>
+                </div>
+                <div class="col-md-6">
+                    <form method="post" action="{% url 'product_forecast' product.id warehouse.id %}">
+                        {% csrf_token %}
+                        <div class="input-group mb-3">
+                            <select name="method" class="form-select">
+                                <option value="random_forest">Random Forest</option>
+                                <option value="prophet">Prophet</option>
+                                <option value="arima">ARIMA</option>
+                            </select>
+                            <input type="number" name="periods" value="30" min="7" max="90" class="form-control">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-sync-alt"></i> Regenerate
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {% if forecast %}
+                {{ chart|safe }}
+            {% else %}
+                <div class="alert alert-warning">
+                    No forecast available. <a href="#" class="alert-link">Generate one now</a>.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

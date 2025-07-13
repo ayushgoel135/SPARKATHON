@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Route Details - {{ route.route_id }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>
+                <i class="fas fa-route"></i> Route Details: {{ route.route_id }}
+            </h2>
+            <p class="text-muted">Planned for {{ route.planned_date }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'delivery_dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">Route Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Status:</strong> 
+                        <span class="badge 
+                            {% if route.status == 'completed' %}bg-success
+                            {% elif route.status == 'in_progress' %}bg-primary
+                            {% else %}bg-info{% endif %}">
+                            {{ route.get_status_display }}
+                        </span>
+                    </p>
+                    <p><strong>Warehouse:</strong> {{ route.warehouse.name }}</p>
+                    <p><strong>Driver:</strong> 
+                        {% if route.driver %}
+                            {{ route.driver.name }} ({{ route.driver.license_number }})
+                        {% else %}
+                            Not assigned
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Vehicle:</strong> 
+                        {% if route.vehicle %}
+                            {{ route.vehicle.get_type_display }} ({{ route.vehicle.registration }})
+                        {% else %}
+                            Not assigned
+                        {% endif %}
+                    </p>
+                    <p><strong>Total Distance:</strong> {{ route.total_distance|floatformat:2 }} km</p>
+                    <p><strong>Estimated Duration:</strong> {{ route.estimated_duration|floatformat:0 }} min</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-map-marked-alt"></i> Route Stops
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Customer</th>
+                            <th>Order</th>
+                            <th>Estimated Arrival</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stop in route.routeorder_set.all %}
+                        <tr>
+                            <td>{{ stop.sequence }}</td>
+                            <td>{{ stop.order.customer.name }}</td>
+                            <td>
+                                <a href="{% url 'admin:logistics_order_change' stop.order.id %}">
+                                    {{ stop.order.order_number }}
+                                </a>
+                            </td>
+                            <td>{{ stop.estimated_arrival|time }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if stop.delivery_status == 'delivered' %}bg-success
+                                    {% elif stop.delivery_status == 'out_for_delivery' %}bg-primary
+                                    {% else %}bg-warning text-dark{% endif %}">
+                                    {{ stop.get_delivery_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'admin:logistics_routeorder_change' stop.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-chart-pie"></i> Route Statistics
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 text-center">
+                    <div class="display-4 text-primary">
+                        {{ route.routeorder_set.count }}
+                    </div>
+                    <p class="text-muted">Total Stops</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="display-4 text-success">
+                        {{ route.routeorder_set.filter(delivery_status='delivered').count }}
+                    </div>
+                    <p class="text-muted">Completed Deliveries</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="display-4 text-info">
+                        {{ route.calculate_efficiency|floatformat:0 }}%
+                    </div>
+                    <p class="text-muted">Efficiency Score</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
