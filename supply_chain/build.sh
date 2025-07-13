@@ -8,4 +8,4 @@ pip install -r requirements.txt
 python manage.py migrate
 
 # Create superuser non-interactively only if it doesn't exist
-echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('$Ayush135', '$gppg317@gmail.com', '$1234567890') if not User.objects.filter(username='$Ayush135').exists() else None" | python manage.py shell
+echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('$Ayush13579', '$gppg317@gmail.com', '$1234567890') if not User.objects.filter(username='$Ayush13579').exists() else None" | python manage.py shell
