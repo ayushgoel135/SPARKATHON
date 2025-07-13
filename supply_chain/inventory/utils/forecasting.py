@@ -14,6 +14,8 @@ import joblib
 import os
 from datetime import datetime, timedelta
 import json
+import matplotlib
+matplotlib.use('Agg')
 from ..models import SalesHistory, DemandForecast, Product, Warehouse, Inventory
 
 class DemandForecaster:
